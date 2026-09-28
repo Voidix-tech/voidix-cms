@@ -3,10 +3,12 @@ import Link from "next/link";
 import CursorHeatmap from "@/app/(panel)/user-activity/CursorHeatmap";
 import ActivityFilters from "@/app/(panel)/user-activity/ActivityFilters";
 import VisitsTrend from "@/app/(panel)/user-activity/VisitsTrend";
+import ClearTrackingSection from "@/app/(panel)/user-activity/ClearTrackingSection";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ExpandableRows } from "@/components/ui/ExpandableRows";
 import { requireMember } from "@/lib/auth";
 import { buildActivityReport, type ActivityReport } from "@/lib/journey/activityReport";
+import { getTrackingTableCounts } from "@/lib/journey/maintenance";
 import {
   ACTIVITY_PERIOD_PHRASES,
   resolveActivityWindow,
@@ -61,7 +63,10 @@ export default async function UserActivityPage(props: PageProps<"/user-activity"
   const now = new Date();
   const window = resolveActivityWindow(params.period, now, params.from, params.to);
 
-  const report = await buildActivityReport(window);
+  const [report, counts] = await Promise.all([
+    buildActivityReport(window),
+    getTrackingTableCounts(),
+  ]);
   const phrase = ACTIVITY_PERIOD_PHRASES[window.key];
 
   return (
@@ -85,6 +90,10 @@ export default async function UserActivityPage(props: PageProps<"/user-activity"
           <Heatmaps report={report} />
         </div>
       )}
+
+      <div className="mt-12">
+        <ClearTrackingSection counts={counts} />
+      </div>
     </>
   );
 }

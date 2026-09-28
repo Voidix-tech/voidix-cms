@@ -124,3 +124,78 @@ export async function forgetVisitor(visitorId: string): Promise<{ paths: number;
 
   return { paths: paths.count, events: events.count };
 }
+
+export interface ClearTrackingResult {
+  deletedEvents: number;
+  deletedGrids: number;
+  deletedPaths: number;
+  deletedDaily: number;
+}
+
+/**
+ * Permanently deletes all recorded tracking data across all four journey tables.
+ *
+ * ── ⚠ A TRANSACTION ACROSS ALL FOUR TABLES ─────────────────────────────────────────────────────
+ * Deletes cursor grids (heatmaps), cursor paths (trails), raw events, and rolled-up daily records.
+ * Used by administrators to reset tracking during testing or to satisfy complete database purge
+ * requests.
+ */
+export async function clearAllJourneyTracking(): Promise<ClearTrackingResult> {
+  const [deletedGrids, deletedPaths, deletedEvents, deletedDaily] = await prisma.$transaction([
+    prisma.journeyCursorGrid.deleteMany({}),
+    prisma.journeyCursorPath.deleteMany({}),
+    prisma.journeyEvent.deleteMany({}),
+    prisma.journeyDaily.deleteMany({}),
+  ]);
+
+  return {
+    deletedGrids: deletedGrids.count,
+    deletedPaths: deletedPaths.count,
+    deletedEvents: deletedEvents.count,
+    deletedDaily: deletedDaily.count,
+  };
+}
+
+/**
+ * Permanently deletes only cursor heatmaps and cursor paths, preserving event funnels and daily counts.
+ */
+export async function clearHeatmapTracking(): Promise<{ deletedGrids: number; deletedPaths: number }> {
+  const [deletedGrids, deletedPaths] = await prisma.$transaction([
+    prisma.journeyCursorGrid.deleteMany({}),
+    prisma.journeyCursorPath.deleteMany({}),
+  ]);
+
+  return {
+    deletedGrids: deletedGrids.count,
+    deletedPaths: deletedPaths.count,
+  };
+}
+
+export interface TrackingTableCounts {
+  eventsCount: number;
+  gridsCount: number;
+  pathsCount: number;
+  dailyCount: number;
+  totalCount: number;
+}
+
+/**
+ * Returns current row counts across the four journey tables to inform administrators before clearing.
+ */
+export async function getTrackingTableCounts(): Promise<TrackingTableCounts> {
+  const [eventsCount, gridsCount, pathsCount, dailyCount] = await Promise.all([
+    prisma.journeyEvent.count(),
+    prisma.journeyCursorGrid.count(),
+    prisma.journeyCursorPath.count(),
+    prisma.journeyDaily.count(),
+  ]);
+
+  return {
+    eventsCount,
+    gridsCount,
+    pathsCount,
+    dailyCount,
+    totalCount: eventsCount + gridsCount + pathsCount + dailyCount,
+  };
+}
+
