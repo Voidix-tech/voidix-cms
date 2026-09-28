@@ -468,6 +468,23 @@ model AboutStackItem {
   @@map("about_stack_items")
 }
 
+/// About's section 06, the projects the studio leads with.
+///
+/// ⚠ Deliberately NOT a reference to `projects`. Works describes a project for the field; this
+/// describes it for a page about the studio, so the two lists and their copy are owned separately.
+/// An empty list is a designed state: the site drops the section and its rail station entirely.
+model AboutTopProject {
+  id          String  @id @default(uuid()) @db.Uuid
+  sortOrder   Int     @map("sort_order")
+  name        String  @db.VarChar(80)
+  description String
+  /// ⚠ NULL, never "" — same rule and same reason as `Project.liveUrl`.
+  url         String? @db.VarChar(500)
+
+  @@index([sortOrder])
+  @@map("about_top_projects")
+}
+
 /// The `/careers` document's prose, including the strings its application form renders.
 model CareersPage {
   id String @id

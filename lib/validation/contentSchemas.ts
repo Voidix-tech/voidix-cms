@@ -72,6 +72,11 @@ export const FIELD_LIMITS = {
   instrumentCount: 6,
   stackItem: 40,
   stackCount: 12,
+  // About's section 06. Name matches the Works title cap; the description is a claim's backing,
+  // since it renders in exactly that slot.
+  topProjectName: 80,
+  topProjectDescription: 400,
+  topProjectCount: 8,
   rolesEmptyLine: 200,
   rolesEmptyInvite: 60,
   openApplicationTitle: 80,
@@ -558,6 +563,24 @@ export const INSTRUMENT_PARTS = [
   { key: "value", max: FIELD_LIMITS.instrumentValue, label: "Value" },
 ] as const;
 
+/**
+ * One of About's top projects, edited as its own row. The URL is optional: plenty of work sits behind
+ * a login or an NDA, and the site renders no link rather than an empty one.
+ */
+const topProjectSchema = z.object({
+  name: plainLine(FIELD_LIMITS.topProjectName, "Name"),
+  description: plainLine(FIELD_LIMITS.topProjectDescription, "Description"),
+  url: optionalExternalUrl(FIELD_LIMITS.projectLiveUrl, "URL").transform(
+    // NULL rather than "", see `AboutTopProject.url`.
+    (value) => value ?? null,
+  ),
+});
+
+// No minimum: an empty list is how an editor takes section 06 off the page.
+const topProjectList = z.array(topProjectSchema).max(FIELD_LIMITS.topProjectCount, {
+  message: `No more than ${FIELD_LIMITS.topProjectCount} projects.`,
+});
+
 const claimList = (label: string) =>
   delimitedList(CLAIM_PARTS, FIELD_LIMITS.claimCount, label).transform((entries) =>
     entries.map((entry) => ({ claim: entry.claim, backing: entry.backing })),
@@ -601,6 +624,7 @@ export const aboutSchema = z.object({
   instrumentsNote: plainLine(FIELD_LIMITS.documentNote, "Instruments note"),
   stack: chipList(FIELD_LIMITS.stackItem, FIELD_LIMITS.stackCount, "stack item"),
   stackNote: plainLine(FIELD_LIMITS.documentNote, "Stack note"),
+  topProjects: topProjectList,
   closingTitle: plainLine(FIELD_LIMITS.documentClosingTitle, "Closing title"),
   closingLead: plainLine(FIELD_LIMITS.documentClosingLead, "Closing lead"),
   careersInvite: plainLine(FIELD_LIMITS.documentInvite, "Careers link"),

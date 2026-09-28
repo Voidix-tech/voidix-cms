@@ -6,7 +6,8 @@ import { parseBlogBlocks } from "@/lib/content/blogBlocks";
 import { findMarkdownWarnings } from "@/lib/text/plainText";
 import { isExternalLinkUrl, isSafeLinkUrl } from "@/lib/validation/contentSchemas";
 
-const CONTROL_CLASSES =
+// Exported for the few fields that live beside the form they belong to rather than in this file.
+export const CONTROL_CLASSES =
   "w-full rounded-sm border border-border bg-field px-3 py-2 text-sm text-fg placeholder:text-muted transition-colors duration-150 hover:border-border-strong focus:border-accent focus:outline-none";
 
 interface FieldShellProps {

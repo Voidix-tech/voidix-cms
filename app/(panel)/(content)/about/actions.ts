@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { SINGLETON_ROW_ID } from "@/lib/content/singleton";
 import { formErrorFromZod, formSuccess, type FormState } from "@/lib/forms/formState";
+import { readTopProjects } from "@/lib/forms/topProjectFields";
 import { prisma } from "@/lib/prisma";
 import { aboutSchema } from "@/lib/validation/contentSchemas";
 
@@ -27,13 +28,24 @@ export async function updateAboutAction(
     instrumentsNote: formData.get("instrumentsNote") ?? "",
     stack: formData.get("stack") ?? "",
     stackNote: formData.get("stackNote") ?? "",
+    topProjects: readTopProjects(formData),
     closingTitle: formData.get("closingTitle") ?? "",
     closingLead: formData.get("closingLead") ?? "",
     careersInvite: formData.get("careersInvite") ?? "",
   });
 
   if (!parsed.success) {
-    return formErrorFromZod(parsed.error);
+    const failure = formErrorFromZod(parsed.error);
+
+    // The rows share one error slot, so the message has to say which row it is about.
+    const rowIssue = parsed.error.issues.find(
+      (issue) => issue.path[0] === "topProjects" && typeof issue.path[1] === "number",
+    );
+    if (rowIssue) {
+      failure.fieldErrors.topProjects = `Project ${Number(rowIssue.path[1]) + 1}: ${rowIssue.message}`;
+    }
+
+    return failure;
   }
 
   const {
@@ -42,6 +54,7 @@ export async function updateAboutAction(
     buildPhases,
     instruments,
     stack,
+    topProjects,
     ...page
   } = parsed.data;
 
@@ -79,6 +92,11 @@ export async function updateAboutAction(
     prisma.aboutStackItem.deleteMany({}),
     prisma.aboutStackItem.createMany({
       data: stack.map((label, index) => ({ sortOrder: index, label })),
+    }),
+
+    prisma.aboutTopProject.deleteMany({}),
+    prisma.aboutTopProject.createMany({
+      data: topProjects.map((project, index) => ({ sortOrder: index, ...project })),
     }),
   ]);
 

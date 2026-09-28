@@ -149,9 +149,19 @@ export interface PublishedAbout {
   instrumentsNote: string;
   stack: string[];
   stackNote: string;
+  /// Section 06. May be empty — the site then drops the section and its rail station.
+  topProjects: PublishedTopProject[];
   closingTitle: string;
   closingLead: string;
   careersInvite: string;
+}
+
+export interface PublishedTopProject {
+  index: string;
+  name: string;
+  description: string;
+  /// Null when the work has no public address; the site renders no link rather than an empty one.
+  url: string | null;
 }
 
 export interface PublishedCareerRole {
@@ -277,6 +287,7 @@ export async function buildContentPayload(): Promise<ContentPayload> {
     buildPhases,
     instruments,
     stackItems,
+    topProjects,
     careers,
     workingHere,
     hiringPhases,
@@ -310,6 +321,7 @@ export async function buildContentPayload(): Promise<ContentPayload> {
     prisma.aboutBuildPhase.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.aboutInstrument.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.aboutStackItem.findMany({ orderBy: { sortOrder: "asc" } }),
+    prisma.aboutTopProject.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.careersPage.findUnique({ where: { id: SINGLETON_ROW_ID } }),
     prisma.careersClaim.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.careersHiringPhase.findMany({ orderBy: { sortOrder: "asc" } }),
@@ -389,6 +401,12 @@ export async function buildContentPayload(): Promise<ContentPayload> {
           instrumentsNote: about.instrumentsNote,
           stack: stackItems.map((item) => item.label),
           stackNote: about.stackNote,
+          topProjects: topProjects.map((project, position) => ({
+            index: formatOrdinal(position),
+            name: project.name,
+            description: project.description,
+            url: project.url,
+          })),
           closingTitle: about.closingTitle,
           closingLead: about.closingLead,
           careersInvite: about.careersInvite,
@@ -535,7 +553,9 @@ export function parseReleasePayload(payload: unknown): ContentPayload | null {
     // these keys.
     contact: candidate.contact ?? null,
     footer: candidate.footer ?? null,
-    about: candidate.about ?? null,
+    // A release from before section 06 has no `topProjects`. Filled in as the empty list it
+    // meant, or every such release would read as "About changed" against a draft that has `[]`.
+    about: candidate.about ? { ...candidate.about, topProjects: candidate.about.topProjects ?? [] } : null,
     careers: candidate.careers ?? null,
     blogs: candidate.blogs ?? [],
     // `[]` rather than null: disciplines are seeded by migration and always exist going forward,

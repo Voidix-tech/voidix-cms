@@ -108,6 +108,7 @@ const ABOUT_DEFAULTS: AboutFormValues = {
     "Business automation",
     "Software integrations",
   ],
+  topProjects: [],
   stackNote:
     "A project can begin with one system and grow into a connected digital ecosystem without rebuilding the foundation each time.",
   closingTitle: "Tell us what you're building.",
@@ -117,7 +118,7 @@ const ABOUT_DEFAULTS: AboutFormValues = {
 };
 
 export default async function AboutPage() {
-  const [about, premiseParagraphs, principles, buildPhases, instruments, stackItems] =
+  const [about, premiseParagraphs, principles, buildPhases, instruments, stackItems, topProjects] =
     await Promise.all([
       prisma.aboutPage.findUnique({ where: { id: SINGLETON_ROW_ID } }),
       prisma.aboutPremiseParagraph.findMany({ orderBy: { sortOrder: "asc" } }),
@@ -125,6 +126,7 @@ export default async function AboutPage() {
       prisma.aboutBuildPhase.findMany({ orderBy: { sortOrder: "asc" } }),
       prisma.aboutInstrument.findMany({ orderBy: { sortOrder: "asc" } }),
       prisma.aboutStackItem.findMany({ orderBy: { sortOrder: "asc" } }),
+      prisma.aboutTopProject.findMany({ orderBy: { sortOrder: "asc" } }),
     ]);
 
   return (
@@ -138,7 +140,7 @@ export default async function AboutPage() {
       {!about && (
         <PageHeaderNote>
           Nothing has been saved here yet, so these fields hold the copy the site ships today —
-          nothing is stored until you press Save. The page&rsquo;s five numbered sections and their
+          nothing is stored until you press Save. The page&rsquo;s six numbered sections and their
           anchors stay in the site&rsquo;s source: each section&rsquo;s key is both its{" "}
           <code className="text-fg">#anchor</code> and the station the orbit rail scrolls to, so
           renaming one is a developer change.
@@ -173,6 +175,11 @@ export default async function AboutPage() {
                 instrumentsNote: about.instrumentsNote,
                 stack: stackItems.map((item) => item.label),
                 stackNote: about.stackNote,
+                topProjects: topProjects.map((project) => ({
+                  name: project.name,
+                  description: project.description,
+                  url: project.url ?? "",
+                })),
                 closingTitle: about.closingTitle,
                 closingLead: about.closingLead,
                 careersInvite: about.careersInvite,

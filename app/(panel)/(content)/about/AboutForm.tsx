@@ -4,6 +4,10 @@ import { useActionState } from "react";
 
 import { updateAboutAction } from "@/app/(panel)/(content)/about/actions";
 import {
+  TopProjectsField,
+  type TopProjectValue,
+} from "@/app/(panel)/(content)/about/TopProjectsField";
+import {
   ChipListField,
   DelimitedListField,
   FormMessage,
@@ -34,6 +38,7 @@ export interface AboutFormValues {
   instrumentsNote: string;
   stack: string[];
   stackNote: string;
+  topProjects: TopProjectValue[];
   closingTitle: string;
   closingLead: string;
   careersInvite: string;
@@ -195,6 +200,15 @@ export function AboutForm({ about }: { about: AboutFormValues }) {
           defaultValue={about.stackNote}
           max={FIELD_LIMITS.documentNote}
           error={state.fieldErrors.stackNote}
+        />
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-6 border-t border-border pt-8">
+        <legend className="eyebrow mb-4">06 · Top performing projects</legend>
+
+        <TopProjectsField
+          defaultValue={about.topProjects}
+          error={state.fieldErrors.topProjects}
         />
       </fieldset>
 
