@@ -108,7 +108,32 @@ const ABOUT_DEFAULTS: AboutFormValues = {
     "Business automation",
     "Software integrations",
   ],
-  topProjects: [],
+  topProjects: [
+    {
+      name: "Kemcon",
+      description:
+        "A full eco-system for Kemcon company that helps destibute leads through out the website and a full crm for managing the day to day actions also an a automated email to whatsapp integeration in the factory.",
+      url: "https://www.kemcon.site/",
+    },
+    {
+      name: "Dar El-Kola",
+      description:
+        "A full managment system for the patients, sessions, medications and invistigations for each indipendent appointment.",
+      url: "",
+    },
+    {
+      name: "Einherji",
+      description:
+        "Clients to sell to, suppliers to buy from, roles to apply for — three hunts, one pipeline. Twenty-three sources feed a single queue, and every contact arrives with a message drafted in that hunt's own voice.",
+      url: "",
+    },
+    {
+      name: "Valkyrie",
+      description:
+        "A shop floor with the stock room built in. Stock, pricing, coupons, reviews and the homepage itself are edited in the same console that carries an order from checkout to delivery — paid by card through Stripe, or cash at the door.",
+      url: "https://www.valkyrie-eg.com/",
+    },
+  ],
   stackNote:
     "A project can begin with one system and grow into a connected digital ecosystem without rebuilding the foundation each time.",
   closingTitle: "Tell us what you're building.",
